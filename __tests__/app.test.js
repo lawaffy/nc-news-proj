@@ -27,3 +27,54 @@ describe("GET /api", () => {
       });
   });
 });
+
+describe("GET /api/topics", () => {
+  test("200: Responds with an array of all topics", () => {
+    return request(app)
+      .get("/api/topics")
+      .expect(200)
+      .then(({ body: { topics  }}) => {
+        expect(Array.isArray(topics)).toBe(true)
+        console.log(topics)
+      })
+  });
+
+  test(`200: Correct response should have 'slug' and 'description' properties`, () => {
+    return request(app)
+      .get("/api/topics")
+      .expect(200)
+      .then(({ body: { topics  }}) => {
+        topics.forEach((topic) => {
+          expect(topic).toHaveProperty('slug')
+          expect(topic).toHaveProperty('description')
+        })
+      })
+  });
+
+  test("404: Responds with error if the endpoint is incorrect for the request", () => {
+    return request(app)
+    .get("/api/topi")
+    .expect(404)
+    .then((response) => {
+      expect(response.body).toEqual({ error: "Not found" })
+    })
+ })
+
+  test("404: Responds with an error message if there is no data to handle", () => {
+    return db.query("DELETE FROM comments;")
+    .then(() => {
+      return db.query("DELETE FROM articles;");
+    })
+    .then(() => {
+      return db.query("DELETE FROM topics;");
+    })
+    .then(() => {
+      return request(app)
+      .get("/api/topics")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body).toEqual({ error: 'Not found'})
+      })
+    })
+  });
+});
