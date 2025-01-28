@@ -6,7 +6,7 @@ const endpoints = require('./endpoints.json')
 
 const getTopics = require('./controllers/topics.controller')
 
-const getArticleById = require('./controllers/articles.controller')
+const { getArticles, getArticleById } = require('./controllers/articles.controller')
 
 app.get("/api", (request, response) => {
     response.status(200).send( { endpoints })
@@ -16,17 +16,27 @@ app.get("/api/topics", getTopics);
 
 app.get("/api/articles/:article_id", getArticleById)
 
+app.get("/api/articles", getArticles)
+
+app.use((err, req, res, next) => {
+  if (err.message === "Bad Request") {
+    res.status(400).send({ error: "Bad Request" });
+  } else {
+    next(err);
+  }
+});
+
 app.use((req, res, next) => {
     res.status(404).send({ error: "Not found" })
 })
 
 app.use((err, req, res, next) => {
-    if (err.message === "No topics found" || "Article not found") { // need to add error for articles too
-      res.status(404).send({ error: "Not found" });
-    } else {
-      next(err);
-    }
-  });
+  if (err.message === "No topics found" || "Article not found") { // need to add error for articles too
+    res.status(404).send({ error: "Not found" });
+  } else {
+    next(err);
+  }
+});
 
 app.use((err, req, res, next) => {
   console.log(err, 'unhandled error!')
