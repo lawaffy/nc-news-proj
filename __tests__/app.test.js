@@ -4,9 +4,7 @@ const app = require('../app')
 const seed = require('../db/seeds/seed')
 const db = require('../db/connection')
 const testData = require('../db/data/test-data/index');
-const fetchTopics = require("../models/topics.model");
-const { ident } = require("pg-format");
-const fetchArticleById = require("../models/articles.model");
+const { fetchArticle, fetchArticleById } = require("../models/articles.model");
 
 /* Set up your test imports here */
 
@@ -83,7 +81,6 @@ describe("GET /api/articles/:article_id", () => {
       .get("/api/articles/2")
       .expect(200)
       .then(({ body: { article } }) => {
-        console.log(article, 'hi')
         expect(typeof article).toBe('object')
         expect(article.article_id).toBe(2)
       });
@@ -94,7 +91,6 @@ describe("GET /api/articles/:article_id", () => {
       .get("/api/articles/2")
       .expect(200)
       .then(({ body: { article } }) => {
-        console.log(article, 'hi')
         expect(article).toHaveProperty('author')
         expect(article).toHaveProperty('title')
         expect(article).toHaveProperty('article_id')
@@ -129,3 +125,40 @@ describe("GET /api/articles/:article_id", () => {
     return expect(fetchArticleById(3000)).rejects.toEqual({ message: 'Article not found' })
   })
 });
+
+describe("GET /api/articles", () => {
+  test("200: Responds with an array of articles with correct properties", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body }) => {
+        const firstArticle = body.articles[0]
+          expect(firstArticle.author).toBe('rogersop')
+          expect(firstArticle.title).toBe('UNCOVERED: catspiracy to bring down democracy')
+          expect(firstArticle.article_id).toBe(5)
+          expect(firstArticle.body).toBe(undefined)
+          expect(firstArticle.comment_count).toBe('2')
+          expect(firstArticle.created_at).toBe('2020-08-03T13:14:00.000Z')
+          expect(Object.keys(firstArticle).length).toBe(8)
+        })
+      });
+
+  test("Should be able to sort in desc order by created_by column", () => {
+    return request(app)
+      .get("/api/articles?sort_by=created_at&order=desc")
+      .expect(200)
+      .then((response) => {
+        const body = response.body;
+        expect(body.articles).toBeSortedBy('created_at', { descending: true })
+        })
+      })  
+      
+  test("400: Responds with an error when sorted by invalid column", () => {
+    return request(app)
+      .get("/api/articles?sort_by=topic")
+      .expect(400)
+      .then((response) => {
+          expect(response.body.error).toBe("Bad Request")
+        })
+      })
+  });
