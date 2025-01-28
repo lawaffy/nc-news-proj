@@ -23,7 +23,7 @@ app.use((err, req, res, next) => {
   if (err.code === "22P02" || err.code === "23502" || err.message === "Bad Request") {
     res.status(400).send({ error: "Bad Request" });
   } else {
-    next(err); // pass it on to the next handler
+    next(err);
   }
 });
 
@@ -32,7 +32,7 @@ app.use((req, res, next) => {
 })
 
 app.use((err, req, res, next) => {
-  if (err.message === "No topics found" || "Article not found") { // need to add error for articles too
+  if (err.message === "No topics found" || "Article not found") {
     res.status(404).send({ error: "Not found" });
   } else {
     next(err);
