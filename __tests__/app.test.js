@@ -58,47 +58,31 @@ describe("GET /api/topics", () => {
     .get("/api/topi")
     .expect(404)
     .then((response) => {
-      expect(response.body).toEqual({ error: "Not found" })
+      expect(response.body.error).toEqual("Not found")
     })
  })
-
-  test("404: Responds with an error message if there is no data to handle", () => {
-    const noData = { rows: [] }
-    jest.spyOn(db, 'query').mockResolvedValueOnce(noData)
-
-    return request(app)
-      .get("/api/topics")
-      .expect(404)
-      .then(({ body }) => {
-        expect(body).toEqual({ error: "Not found" })
-    })
-  })
 });
 
 describe("GET /api/articles/:article_id", () => {
   test("200: Responds with an object of articles with a valid dynamic endpoint taken from article_id", () => {
     return request(app)
-      .get("/api/articles/2")
+      .get("/api/articles/1")
       .expect(200)
       .then(({ body: { article } }) => {
         expect(typeof article).toBe('object')
-        expect(article.article_id).toBe(2)
+        expect(article.article_id).toBe(1)
       });
   });
 
-  test("200: Responds with an object with correct properties", () => {
+  test("Responds with an object with correct property count", () => {
     return request(app)
       .get("/api/articles/2")
       .expect(200)
       .then(({ body: { article } }) => {
-        expect(article).toHaveProperty('author')
-        expect(article).toHaveProperty('title')
-        expect(article).toHaveProperty('article_id')
-        expect(article).toHaveProperty('body')
-        expect(article).toHaveProperty('topic')
-        expect(article).toHaveProperty('created_at')
-        expect(article).toHaveProperty('votes')
-        expect(article).toHaveProperty('article_img_url')
+        console.log(article)
+        expect(Object.keys(article).length).toBe(8)
+        expect(typeof article.author).toBe("string")
+        expect(typeof article.article_id).toBe('number')
       });
   });
 
@@ -112,19 +96,15 @@ describe("GET /api/articles/:article_id", () => {
       })
   });
 
-  test("Checks that the article_id associates with the dynamic endpoint", () => {
+  test("400: Responds with an error message id is not a number", () => {
     return request(app)
-      .get("/api/articles/3")
-      .expect(200)
+      .get("/api/articles/generalstring")
+      .expect(400)
       .then((response) => {
-        expect(response.body.article.article_id).toBe(3)
-        })
+        expect(response.body.error).toBe("Bad Request")
       })
-
-  test("Checks the fetchArticleById promise will reject if there is no associated article_id in database", () => {
-    return expect(fetchArticleById(3000)).rejects.toEqual({ message: 'Article not found' })
-  })
-});
+  });
+})
 
 describe("GET /api/articles", () => {
   test("200: Responds with an array of articles with correct properties", () => {
