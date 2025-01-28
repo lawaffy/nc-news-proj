@@ -60,7 +60,7 @@ describe("GET /api/topics", () => {
     .then((response) => {
       expect(response.body.error).toEqual("Not found")
     })
- })
+  })
 });
 
 describe("GET /api/articles/:article_id", () => {
@@ -79,7 +79,6 @@ describe("GET /api/articles/:article_id", () => {
       .get("/api/articles/2")
       .expect(200)
       .then(({ body: { article } }) => {
-        console.log(article)
         expect(Object.keys(article).length).toBe(8)
         expect(typeof article.author).toBe("string")
         expect(typeof article.article_id).toBe('number')
@@ -112,20 +111,27 @@ describe("GET /api/articles", () => {
       .get("/api/articles")
       .expect(200)
       .then(({ body }) => {
-        const firstArticle = body.articles[0]
-          expect(firstArticle.author).toBe('rogersop')
-          expect(firstArticle.title).toBe('UNCOVERED: catspiracy to bring down democracy')
-          expect(firstArticle.article_id).toBe(5)
-          expect(firstArticle.body).toBe(undefined)
-          expect(firstArticle.comment_count).toBe('2')
-          expect(firstArticle.created_at).toBe('2020-08-03T13:14:00.000Z')
-          expect(Object.keys(firstArticle).length).toBe(8)
+        body.articles.forEach((article) => {
+          expect(article).toMatchObject({
+            author: expect.any(String),
+            title: expect.any(String),
+            article_id: expect.any(Number),
+            topic: expect.any(String),
+            created_at: expect.any(String),
+            votes: expect.any(Number),
+            article_img_url: expect.any(String),
+            comment_count: expect.any(Number)
+          })
+          expect(Object.keys(article).length).toBe(8)
+          expect(article.body).toBe(undefined)
         })
-      });
-
+      })
+  });
+    
   test("Should be able to sort in desc order by created_by column", () => {
     return request(app)
-      .get("/api/articles?sort_by=created_at&order=desc")
+      .get("/api/articles")
+      .query({ sort_by: 'created_at', order: 'desc' })
       .expect(200)
       .then((response) => {
         const body = response.body;
@@ -133,9 +139,10 @@ describe("GET /api/articles", () => {
         })
       })  
       
-  test("400: Responds with an error when sorted by invalid column", () => {
+  test("400: Responds with an error when requested to sort by invalid column", () => {
     return request(app)
-      .get("/api/articles?sort_by=topic")
+      .get("/api/articles")
+      .query({ sort_by: 'topics' })
       .expect(400)
       .then((response) => {
           expect(response.body.error).toBe("Bad Request")
