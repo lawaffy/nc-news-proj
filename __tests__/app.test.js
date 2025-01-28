@@ -3,7 +3,10 @@ const request = require("supertest");
 const app = require('../app')
 const seed = require('../db/seeds/seed')
 const db = require('../db/connection')
-const testData = require('../db/data/test-data/index')
+const testData = require('../db/data/test-data/index');
+const fetchTopics = require("../models/topics.model");
+const { ident } = require("pg-format");
+const fetchArticleById = require("../models/articles.model");
 
 /* Set up your test imports here */
 
@@ -33,9 +36,10 @@ describe("GET /api/topics", () => {
     return request(app)
       .get("/api/topics")
       .expect(200)
-      .then(({ body: { topics  }}) => {
+      .then(({ body: { topics }}) => {
         expect(Array.isArray(topics)).toBe(true)
-        console.log(topics)
+        expect(topics.length).toBeTruthy()
+        expect(topics.length).toBe(3)
       })
   });
 
@@ -61,20 +65,67 @@ describe("GET /api/topics", () => {
  })
 
   test("404: Responds with an error message if there is no data to handle", () => {
-    return db.query("DELETE FROM comments;")
-    .then(() => {
-      return db.query("DELETE FROM articles;");
-    })
-    .then(() => {
-      return db.query("DELETE FROM topics;");
-    })
-    .then(() => {
-      return request(app)
+    const noData = { rows: [] }
+    jest.spyOn(db, 'query').mockResolvedValueOnce(noData)
+
+    return request(app)
       .get("/api/topics")
       .expect(404)
       .then(({ body }) => {
-        expect(body).toEqual({ error: 'Not found'})
-      })
+        expect(body).toEqual({ error: "Not found" })
     })
+  })
+});
+
+describe("GET /api/articles/:article_id", () => {
+  test("200: Responds with an object of articles with a valid dynamic endpoint taken from article_id", () => {
+    return request(app)
+      .get("/api/articles/2")
+      .expect(200)
+      .then(({ body: { article } }) => {
+        console.log(article, 'hi')
+        expect(typeof article).toBe('object')
+        expect(article.article_id).toBe(2)
+      });
   });
+
+  test("200: Responds with an object with correct properties", () => {
+    return request(app)
+      .get("/api/articles/2")
+      .expect(200)
+      .then(({ body: { article } }) => {
+        console.log(article, 'hi')
+        expect(article).toHaveProperty('author')
+        expect(article).toHaveProperty('title')
+        expect(article).toHaveProperty('article_id')
+        expect(article).toHaveProperty('body')
+        expect(article).toHaveProperty('topic')
+        expect(article).toHaveProperty('created_at')
+        expect(article).toHaveProperty('votes')
+        expect(article).toHaveProperty('article_img_url')
+      });
+  });
+
+  test("404: Responds with an error message when requested an invalid dynamic endpoint (no article_id)", () => {
+    return request(app)
+      .get("/api/articles/3000")
+      .expect(404)
+      .then((response) => {
+        expect(response.body).toEqual({ error: "Not found" })
+        expect(response.body).not.toHaveProperty('author_id')
+      })
+  });
+
+  test("Checks that the article_id associates with the dynamic endpoint", () => {
+    return request(app)
+      .get("/api/articles/3")
+      .expect(200)
+      .then((response) => {
+        expect(response.body.article.article_id).toBe(3)
+        })
+      })
+
+  test("Checks the fetchArticleById promise will reject if there is no associated article_id in database", () => {
+    return expect(fetchArticleById(3000)).rejects.toEqual({ message: 'Article not found' })
+  })
 });
