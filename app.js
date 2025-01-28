@@ -19,10 +19,11 @@ app.get("/api/articles/:article_id", getArticleById)
 app.get("/api/articles", getArticles)
 
 app.use((err, req, res, next) => {
-  if (err.message === "Bad Request") {
+
+  if (err.code === "22P02" || err.code === "23502" || err.message === "Bad Request") {
     res.status(400).send({ error: "Bad Request" });
   } else {
-    next(err);
+    next(err); // pass it on to the next handler
   }
 });
 
