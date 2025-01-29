@@ -72,4 +72,34 @@ const fetchArticleComments = (queries) => {
     })
 }
 
-module.exports = { fetchArticles, fetchArticleById, fetchArticleComments }
+const addComment = (newComment, article_id) => {
+    const { body, username } = newComment
+
+    if (typeof body !== 'string' || typeof username !== 'string') {
+        return Promise.reject({ message: 'Bad Request'})
+    }
+
+    return fetchArticleById(article_id)
+    .then((article) => {
+        if (!article) {
+            return Promise.reject({ message: 'Not Found' })
+        }
+
+        return db.query(`SELECT * FROM users WHERE username = $1`, [username]
+        )
+        .then((user) => {
+            if (!user) {
+                return Promise.reject({ message: 'Not Found'})
+            }
+
+            return db.query(
+                `INSERT INTO comments (body, author, article_id) VALUES ($1, $2, $3) RETURNING *;`, [body, username, article_id]
+                )
+            })
+    })
+    .then(({ rows }) => {
+        return rows[0];
+    })
+}
+
+module.exports = { fetchArticles, fetchArticleById, fetchArticleComments, addComment }
