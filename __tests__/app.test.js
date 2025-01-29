@@ -4,7 +4,6 @@ const app = require('../app')
 const seed = require('../db/seeds/seed')
 const db = require('../db/connection')
 const testData = require('../db/data/test-data/index');
-const { fetchArticle, fetchArticleById } = require("../models/articles.model");
 
 /* Set up your test imports here */
 
@@ -149,3 +148,76 @@ describe("GET /api/articles", () => {
         })
       })
   });
+
+describe("GET /api/articles/:article_id/comments", () => {
+  test("200: Responds with an array of comments with correct properties", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then(({ body }) => {
+        body.comments.forEach((comment) => {
+          expect(comment).toMatchObject({
+            comment_id: expect.any(Number),
+            body: expect.any(String),
+            article_id: expect.any(Number),
+            author: expect.any(String),
+            votes: expect.any(Number),
+            created_at: expect.any(String)
+          })
+        })
+      })
+    })
+
+  test("Dynamic endpoint of article_id is functioning effectively for request", () => {
+    return request(app)
+      .get("/api/articles/6/comments")
+      .expect(200)
+      .then(({ body }) => {
+        body.comments.forEach((comment) => {
+          expect(comment.article_id).toBe(6)
+          })
+        })
+    })
+
+  test("Asserts that we can sort_by most recent comments in desc", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .query({ sort_by: 'created_at', order: 'desc' })
+      .expect(200)
+      .then((response) => {
+        const body = response.body;
+        expect(body.comments).toBeSortedBy('created_at', { descending: true })
+    })
+  })
+
+  test("404: throws error if there are no associated article_ids in comments table to return", () => {
+    return request(app)
+      .get("/api/articles/2/comments")
+      .expect(404)
+      .then((response) => {
+        const body = response.body;
+        expect(body.error).toBe("Not found")
+    })
+  })
+
+  test("400: throws error if trying to sort by invalid column", () => {
+    return request(app)
+      .get("/api/articles/5/comments")
+      .query({ sort_by: 'comment_id' })
+      .expect(400)
+      .then((response) => {
+        const body = response.body;
+        expect(body.error).toBe("Bad Request")
+    })
+  })
+
+  test("400: throws error if request is invalid data type", () => {
+    return request(app)
+      .get("/api/articles/articleid/comments")
+      .expect(400)
+      .then((response) => {
+        const body = response.body;
+        expect(body.error).toBe("Bad Request")
+    })
+  })
+})

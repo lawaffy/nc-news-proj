@@ -40,4 +40,36 @@ const fetchArticleById = (id) => {
     })
 }
 
-module.exports = { fetchArticles, fetchArticleById }
+const fetchArticleComments = (queries) => {
+    const { sort_by, order, article_id } = queries
+
+    return fetchArticleById(article_id)
+    .then(() => {
+        let SQLString = `
+        SELECT * FROM comments
+        WHERE article_id = $1`
+        
+        if (sort_by) {
+            const validColumnsToSortBy = ['created_at'];
+            if (validColumnsToSortBy.includes(sort_by)) {
+                SQLString += ` ORDER BY ${sort_by}`;
+            } else {
+                return Promise.reject({ message: 'Bad Request'})
+            }
+        }
+    
+        if (order === "desc" || order === 'asc') {
+            SQLString += " " + `${order}`
+        }
+
+        return db.query(SQLString, [article_id]);
+    })
+    .then(( { rows }) => {
+        if (rows.length === 0) {
+            return Promise.reject({ message: 'Not found' })
+        }
+        return rows
+    })
+}
+
+module.exports = { fetchArticles, fetchArticleById, fetchArticleComments }
