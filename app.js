@@ -6,7 +6,7 @@ const endpoints = require('./endpoints.json')
 
 const getTopics = require('./controllers/topics.controller')
 
-const { getArticles, getArticleById } = require('./controllers/articles.controller')
+const { getArticles, getArticleById, getArticleComments } = require('./controllers/articles.controller')
 
 app.get("/api", (request, response) => {
     response.status(200).send( { endpoints })
@@ -17,6 +17,8 @@ app.get("/api/topics", getTopics);
 app.get("/api/articles/:article_id", getArticleById)
 
 app.get("/api/articles", getArticles)
+
+app.get("/api/articles/:article_id/comments", getArticleComments)
 
 app.use((err, req, res, next) => {
 
