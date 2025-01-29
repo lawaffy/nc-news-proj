@@ -289,3 +289,80 @@ describe("POST /api/articles/:article_id/comments", () => {
       })
   })
 })
+
+describe("PATCH /api/articles/:article_id", () => {
+  test("200: Responds with an updated article when passed a votes object with all properties", () => {
+    return request(app)
+      .patch("/api/articles/2")
+      .send({ inc_votes: 1 })
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.updatedArticle).toHaveProperty("votes", expect.any(Number))
+        expect(body.updatedArticle).toHaveProperty("title", expect.any(String))
+        expect(body.updatedArticle).toHaveProperty("topic", expect.any(String))
+        expect(body.updatedArticle).toHaveProperty("author", expect.any(String))
+        expect(body.updatedArticle).toHaveProperty("body", expect.any(String))
+        expect(body.updatedArticle).toHaveProperty("created_at", expect.any(String))
+        expect(body.updatedArticle).toHaveProperty("article_img_url", expect.any(String))
+        expect(body.updatedArticle.votes).toBeGreaterThan(0)
+        expect(body.updatedArticle.article_id).toBe(2)
+      })
+  })
+
+  test("shows votes are incrementally adding to existing article", () => {
+    return request(app)
+      .get("/api/articles/1")
+      .expect(200)
+      .then((response) => {
+        expect(response.body.article.votes).toBe(100)
+    
+    return request(app)
+        .patch("/api/articles/1")
+        .send({ inc_votes: 2 })
+        .expect(200)
+      })
+      .then((response) => {
+        expect(response.body.updatedArticle.votes).toBe(102)
+      })
+  })
+
+  test("shows votes can be deducted from an existing article", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({ inc_votes: -20 })
+      .expect(200)
+      .then((response) => {
+        expect(response.body.updatedArticle.votes).toBe(80)
+      })
+  })
+
+  test("400: error thrown when vote_id is incorrect data type", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({ inc_votes: 'two' })
+      .expect(400)
+      .then((response) => {
+        expect(response.body.error).toBe("Bad Request")
+      })
+  })
+
+  test("400: error thrown when vote_id is empty", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({})
+      .expect(400)
+      .then((response) => {
+        expect(response.body.error).toBe("Bad Request")
+      })
+  })
+
+  test("404: error thrown when no article_id to update", () => {
+    return request(app)
+      .patch("/api/articles/1000")
+      .send({ inc_votes: 2 })
+      .expect(404)
+      .then((response) => {
+        expect(response.body.error).toBe("Not found")
+      })
+  })
+})
