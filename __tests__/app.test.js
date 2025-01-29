@@ -221,3 +221,71 @@ describe("GET /api/articles/:article_id/comments", () => {
     })
   })
 })
+
+describe("POST /api/articles/:article_id/comments", () => {
+  test("201: Responds with a posted comment using dynamic article_id endpoint and an existing username", () => {
+    return request(app)
+      .post("/api/articles/2/comments")
+      .send({
+        body: "hello",
+        username: "butter_bridge"
+      })
+      .expect(201)
+      .then((response) => {
+        expect(response.body.comment.body).toBe('hello')
+        expect(response.body.comment.author).toBe('butter_bridge')
+        expect(response.body.comment.article_id).toBe(2)
+      })
+  })
+
+  test("400: missing keys/malformed input", () => {
+    return request(app)
+      .post("/api/articles/2/comments")
+      .send({
+        author: 'laura',
+        votes: 1
+      })
+      .expect(400)
+      .then((response) => {
+        expect(response.body.error).toBe('Bad Request')
+      })
+  })
+
+  test("400: two incorrect data types being added", () => {
+    return request(app)
+      .post("/api/articles/2/comments")
+      .send({
+        body: 2,
+        username: 5348
+      })
+      .expect(400)
+      .then((response) => {
+        expect(response.body.error).toBe('Bad Request')
+      })
+  })
+  test("400: one incorrect data type being added", () => {
+    return request(app)
+      .post("/api/articles/2/comments")
+      .send({
+        body: 2,
+        username: 'butter_bridge'
+      })
+      .expect(400)
+      .then((response) => {
+        expect(response.body.error).toBe('Bad Request')
+      })
+  })
+
+  test("404: when article_id can't be found for endpoint", () => {
+    return request(app)
+      .post("/api/articles/5000/comments")
+      .send({
+        body: 'hello',
+        username: 'butter_bridge'
+      })
+      .expect(404)
+      .then((response) => {
+        expect(response.body.error).toBe('Not found')
+      })
+  })
+})

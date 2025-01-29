@@ -40,5 +40,36 @@
         "article_img_url":
           "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
       }
+  },
+  "GET /api/articles/:article_id/comments": {
+  "description": "selects article by article id and serves an array of comments associated",
+  "queries": ["sort_by", "order", "article_id"],
+  "exampleResponse": {
+    "comments": [
+      {
+        "body": "Fruit Pastilles",
+        "votes": 0,
+        "author": "icellusedkars",
+        "article_id": 1,
+        "created_at": 1592220300000
+      }
+    ]
+  }
+  },
+  "POST /api/articles/:article_id/comments": {
+    "description": "responds with a posted comment obect",
+    "queries": ["username", "body", "article_id"],
+    "exampleResponse": {
+      "comments": [
+        {
+          "comment_id": 19,
+          "body": "New comment",
+          "author": "butter_bridge",
+          "article_id": 2,
+          "votes": 0,
+          "created_at": 1584205320000
+        }
+      ]
     }
+  }
 }
