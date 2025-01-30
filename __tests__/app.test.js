@@ -529,6 +529,53 @@ describe("GET /api/articles?sort_by=created_at&order=?", () => {
       .get("/api/articles?sort_by=created_at&order=hello")
       .expect(400)
       .then((response) => {
+        expect(response.body.error).toBe("Bad Request")
+      })
+  })
+});
+
+describe("GET /api/articles?topic", () => {
+  test("200: Responds with all articles when filtered by associated topic", () => {
+    return request(app)
+      .get("/api/articles?topic=mitch")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles.length).toBe(12)
+      })
+  });
+    
+  test("200: returns all articles on endpoint if no topic query requested", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles.length).toBe(13)
+      })
+  })
+
+  test("404: returns not found when no associated topic value", () => {
+    return request(app)
+      .get("/api/articles?topic=hello")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.error).toBe("Not found")
+      })
+  }) 
+      
+  test("400: Responds with an error when requested to filter by two incorrect queries", () => {
+    return request(app)
+      .get("/api/articles?users=name&title=hello")
+      .expect(400)
+      .then((response) => {
+          expect(response.body.error).toBe("Bad Request")
+      })
+  })
+
+  test("400: Responds with an error when requested to filter by one correct and one incorrect", () => {
+    return request(app)
+      .get("/api/articles?topic=mitch&users=hello")
+      .expect(400)
+      .then((response) => {
           expect(response.body.error).toBe("Bad Request")
       })
   })

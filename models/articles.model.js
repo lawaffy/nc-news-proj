@@ -1,32 +1,69 @@
 const db = require('../db/connection')
 
+const filterByTopic = (topic) => {
+    return db.query(`SELECT * FROM articles WHERE topic = $1`, [topic])
+    .then(({ rows }) => {
+        if (rows.length === 0 ) {
+            return Promise.reject({ message: "Not found" })
+        }
+        return rows[0]
+    })
+}
+
 const fetchArticles = (queries) => {
+    const acceptedQueries = ['topic', 'sort_by', 'order']
+    let isValidQuery = true;
+    Object.keys(queries).forEach((query) => {
+        if (!acceptedQueries.includes(query)) {
+            isValidQuery = false
+        }
+    })
+    if (!isValidQuery) {
+        return Promise.reject({ message: "Bad Request" })
+    }
+
     const sort_by = queries.sort_by
     const order = queries.order || 'desc'
+    const topic = queries.topic
 
     let SQLString = `SELECT articles.author, articles.title, articles.article_id, articles.topic, articles.created_at, articles.votes, articles.article_img_url,
     COUNT(comments.article_id) :: INTEGER AS comment_count
     FROM articles
-    LEFT JOIN comments ON comments.article_id = articles.article_id
-    GROUP BY articles.article_id`
+    LEFT JOIN comments ON comments.article_id = articles.article_id`
 
-    if (sort_by) {
-        const validColumnsToSortBy = ['created_at'];
-        if (validColumnsToSortBy.includes(sort_by)) {
-            SQLString += ` ORDER BY ${sort_by}`;
-        } else {
-            return Promise.reject({ message: 'Bad Request' })
-        } 
-        if (order === 'asc' || order === 'desc') {
-            SQLString += " " + order
-        } else {
-            return Promise.reject({ message: 'Bad Request' })
+    const queryArgs = []
+
+    if (topic) {
+        return filterByTopic(topic).then(() => {
+            SQLString += ` WHERE articles.topic = $1`, [topic] 
+            queryArgs.push(topic)
+            SQLString += ` GROUP BY articles.article_id`
+            return db.query(SQLString, queryArgs).then(({ rows }) => {
+                return rows
+            })
+        })
+
+    } else {
+
+        SQLString += ` GROUP BY articles.article_id`
+
+        if (sort_by) {
+            const validColumnsToSortBy = ['created_at'];
+            if (validColumnsToSortBy.includes(sort_by)) {
+                SQLString += ` ORDER BY ${sort_by}`;
+            } else {
+                return Promise.reject({ message: 'Bad Request' })
+            } 
+            if (order === 'asc' || order === 'desc') {
+                SQLString += " " + order
+            } else {
+                return Promise.reject({ message: 'Bad Request' })
+            }
         }
+        return db.query(SQLString).then(({ rows }) => {
+            return rows;
+        })
     }
-
-    return db.query(SQLString).then(({ rows }) => {
-        return rows;
-    })
 };
 
 const fetchArticleById = (id) => {
