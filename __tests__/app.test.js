@@ -366,3 +366,68 @@ describe("PATCH /api/articles/:article_id", () => {
       })
   })
 })
+
+describe("GET /api/comments/:comment_id", () => {
+  test("200: successfully retrieves comment by id", () => {
+    return request(app)
+      .get("/api/comments/2")
+      .expect(200)
+      .then(({ body: { comment } }) => {
+        expect(comment.comment_id).toBe(2)
+        expect(comment).toHaveProperty("body", expect.any(String))
+    })
+  })
+
+  test("404: returns error when no comment associated", () => {
+    return request(app)
+      .get("/api/comments/2000")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.error).toBe("Not found")
+    })
+  })
+
+  test("400: returns error when incorrect data input", () => {
+    return request(app)
+      .get("/api/comments/numberone")
+      .expect(400)
+      .then((response) => {
+        expect(response.body.error).toBe("Bad Request")
+    })
+  })
+})
+
+describe("DELETE /api/comments/:comment_id", () => {
+  test("204: successfully deletes comment by comment_id", () => {
+    return request(app)
+      .delete("/api/comments/2")
+      .expect(204)
+      .then(() => {
+        return request(app)
+        .get("/api/comments/2")
+        .expect(404)
+        .then((response) => {
+            expect(response.body.error).toBe("Not found")
+            expect(response.body).not.toHaveProperty("body")
+          })
+      })
+  })
+
+  test("404: no relevant comment_id to delete", () => {
+    return request(app)
+      .delete("/api/comments/2000")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.error).toBe("Not found")
+      })
+    })
+
+  test("400: incorrect data type for request", () => {
+    return request(app)
+      .delete("/api/comments/commentid")
+      .expect(400)
+      .then((response) => {
+        expect(response.body.error).toBe("Bad Request")
+      })
+  })
+})
