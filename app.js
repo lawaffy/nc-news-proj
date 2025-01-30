@@ -10,6 +10,8 @@ const { getArticles, getArticleById, getArticleComments, postComment, patchArtic
 
 const { getCommentById, deleteCommentById } = require("./controllers/comments.controller")
 
+const getUsers = require("./controllers/users.controller")
+
 app.use(express.json())
 
 app.get("/api", (request, response) => {
@@ -31,6 +33,8 @@ app.patch("/api/articles/:article_id", patchArticleVotes)
 app.get("/api/comments/:comment_id", getCommentById)
 
 app.delete("/api/comments/:comment_id", deleteCommentById)
+
+app.get("/api/users", getUsers)
 
 app.use((err, req, res, next) => {
 

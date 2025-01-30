@@ -431,3 +431,31 @@ describe("DELETE /api/comments/:comment_id", () => {
       })
   })
 })
+
+describe("GET /api/users", () => {
+  test("200: Responds with an array of objects with correct properties", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then(({ body }) => {
+        expect(Array.isArray(body.users)).toBe(true)
+        body.users.forEach((user) => {
+          expect(user).toMatchObject({
+            username: expect.any(String),
+            name: expect.any(String),
+            avatar_url: expect.any(String)
+          })
+          expect(Object.keys(user).length).toBe(3)
+        })
+      })
+  }); 
+      
+  test("404: Responds with an error when passed incorrect endpoint", () => {
+    return request(app)
+      .get("/api/2308")
+      .expect(404)
+      .then((response) => {
+          expect(response.body.error).toBe("Not found")
+        })
+      })
+  });
