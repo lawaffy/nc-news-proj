@@ -4,7 +4,6 @@ const getCommentById = (request, response, next) => {
     const { comment_id } = request.params;
     fetchCommentById(comment_id)
         .then((comment) => {
-            console.log(comment)
             response.status(200).send({ comment })
         })
         .catch((err) => {
