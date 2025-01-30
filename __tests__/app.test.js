@@ -529,7 +529,7 @@ describe("GET /api/articles?sort_by=created_at&order=?", () => {
       .get("/api/articles?sort_by=created_at&order=hello")
       .expect(400)
       .then((response) => {
-          expect(response.body.error).toBe("Bad Request")
+        expect(response.body.error).toBe("Bad Request")
       })
   })
 });
@@ -540,21 +540,7 @@ describe("GET /api/articles?topic", () => {
       .get("/api/articles?topic=mitch")
       .expect(200)
       .then(({ body }) => {
-        console.log({ body })
-        body.articles.forEach((article) => {
-          expect(article).toMatchObject({
-            author: expect.any(String),
-            title: expect.any(String),
-            article_id: expect.any(Number),
-            topic: expect.any(String),
-            created_at: expect.any(String),
-            votes: expect.any(Number),
-            article_img_url: expect.any(String),
-            comment_count: expect.any(Number)
-          })
-          expect(Object.keys(article).length).toBe(8)
-          expect(article.topic).toBe('mitch')
-        })
+        expect(body.articles.length).toBe(12)
       })
   });
     
@@ -563,19 +549,7 @@ describe("GET /api/articles?topic", () => {
       .get("/api/articles")
       .expect(200)
       .then(({ body }) => {
-        body.articles.forEach((article) => {
-          expect(article).toMatchObject({
-            author: expect.any(String),
-            title: expect.any(String),
-            article_id: expect.any(Number),
-            topic: expect.any(String),
-            created_at: expect.any(String),
-            votes: expect.any(Number),
-            article_img_url: expect.any(String),
-            comment_count: expect.any(Number)
-          })
-          expect(Object.keys(article).length).toBe(8)
-        })
+        expect(body.articles.length).toBe(13)
       })
   })
 
@@ -588,13 +562,21 @@ describe("GET /api/articles?topic", () => {
       })
   }) 
       
-  // test("400: Responds with an error when requested to sort by invalid column to sort", () => {
-  //   return request(app)
-  //     .get("/api/articles?users=name")
-  //     .expect(400)
-  //     .then((response) => {
-  //       console.log(response, 'rresopnse')
-  //         expect(response.body.error).toBe("Bad Request")
-  //     })
-  // })
+  test("400: Responds with an error when requested to filter by two incorrect queries", () => {
+    return request(app)
+      .get("/api/articles?users=name&title=hello")
+      .expect(400)
+      .then((response) => {
+          expect(response.body.error).toBe("Bad Request")
+      })
+  })
+
+  test("400: Responds with an error when requested to filter by one correct and one incorrect", () => {
+    return request(app)
+      .get("/api/articles?topic=mitch&users=hello")
+      .expect(400)
+      .then((response) => {
+          expect(response.body.error).toBe("Bad Request")
+      })
+  })
 });

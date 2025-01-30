@@ -1,12 +1,7 @@
 const db = require('../db/connection')
 
 const filterByTopic = (topic) => {
-    const validColumnsToFilterBy = ['topic']
-    
-    if (!validColumnsToFilterBy.includes('topic')) {
-        return Promise.reject({ message: "Bad Request"})
-    }
-    return db.query(`SELECT * FROM topics WHERE slug = $1`, [topic])
+    return db.query(`SELECT * FROM articles WHERE topic = $1`, [topic])
     .then(({ rows }) => {
         if (rows.length === 0 ) {
             return Promise.reject({ message: "Not found" })
@@ -16,6 +11,17 @@ const filterByTopic = (topic) => {
 }
 
 const fetchArticles = (queries) => {
+    const acceptedQueries = ['topic', 'sort_by', 'order']
+    let isValidQuery = true;
+    Object.keys(queries).forEach((query) => {
+        if (!acceptedQueries.includes(query)) {
+            isValidQuery = false
+        }
+    })
+    if (!isValidQuery) {
+        return Promise.reject({ message: "Bad Request" })
+    }
+
     const sort_by = queries.sort_by
     const order = queries.order || 'desc'
     const topic = queries.topic
@@ -29,18 +35,18 @@ const fetchArticles = (queries) => {
 
     if (topic) {
         return filterByTopic(topic).then(() => {
-        SQLString += ` WHERE articles.topic = $1`, [topic]
-        queryArgs.push(topic)
-        SQLString += ` GROUP BY articles.article_id`
-        console.log(queryArgs)
-        console.log(SQLString)
-        return db.query(SQLString, queryArgs).then(( { rows }) => { 
-            console.log(rows)
-            return rows;
+            SQLString += ` WHERE articles.topic = $1`, [topic] 
+            queryArgs.push(topic)
+            SQLString += ` GROUP BY articles.article_id`
+            return db.query(SQLString, queryArgs).then(({ rows }) => {
+                return rows
+            })
         })
-    })
+
     } else {
+
         SQLString += ` GROUP BY articles.article_id`
+
         if (sort_by) {
             const validColumnsToSortBy = ['created_at'];
             if (validColumnsToSortBy.includes(sort_by)) {
@@ -54,10 +60,10 @@ const fetchArticles = (queries) => {
                 return Promise.reject({ message: 'Bad Request' })
             }
         }
+        return db.query(SQLString).then(({ rows }) => {
+            return rows;
+        })
     }
-    return db.query(SQLString).then(({ rows }) => {
-        return rows;
-    })
 };
 
 const fetchArticleById = (id) => {
