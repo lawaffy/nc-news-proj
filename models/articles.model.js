@@ -2,7 +2,7 @@ const db = require('../db/connection')
 
 const fetchArticles = (queries) => {
     const sort_by = queries.sort_by
-    const order = queries.order
+    const order = queries.order || 'desc'
 
     let SQLString = `SELECT articles.author, articles.title, articles.article_id, articles.topic, articles.created_at, articles.votes, articles.article_img_url,
     COUNT(comments.article_id) :: INTEGER AS comment_count
@@ -15,12 +15,13 @@ const fetchArticles = (queries) => {
         if (validColumnsToSortBy.includes(sort_by)) {
             SQLString += ` ORDER BY ${sort_by}`;
         } else {
-            return Promise.reject({ message: 'Bad Request'})
+            return Promise.reject({ message: 'Bad Request' })
+        } 
+        if (order === 'asc' || order === 'desc') {
+            SQLString += " " + order
+        } else {
+            return Promise.reject({ message: 'Bad Request' })
         }
-    }
-
-    if (order === "desc" || order === 'asc') {
-        SQLString += " " + order;
     }
 
     return db.query(SQLString).then(({ rows }) => {
