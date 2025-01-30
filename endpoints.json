@@ -89,5 +89,21 @@
         }
       ]
     }
+  },
+  "GET /api/comments/:comment_id": {
+    "description": "selects comment by comment id property, and serves an object if there is an associated comment_id",
+    "queries": ["comment_id"],
+    "exampleResponse": {
+        "comment_id": 1,
+        "body": "The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.",
+        "article_id": 1,
+        "author": "butter_bridge",
+        "created_at": 1604113380000,
+        "votes": 14
+    }
+  },
+  "DELETE /api/comments/:comment_id": {
+    "description": "deletes comment by comment_id returning 204 status",
+    "queries": ["comment_id"]
   }
 }

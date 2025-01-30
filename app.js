@@ -8,6 +8,8 @@ const getTopics = require('./controllers/topics.controller')
 
 const { getArticles, getArticleById, getArticleComments, postComment, patchArticleVotes } = require('./controllers/articles.controller')
 
+const { getCommentById, deleteCommentById } = require("./controllers/comments.controller")
+
 app.use(express.json())
 
 app.get("/api", (request, response) => {
@@ -26,6 +28,10 @@ app.post("/api/articles/:article_id/comments", postComment)
 
 app.patch("/api/articles/:article_id", patchArticleVotes)
 
+app.get("/api/comments/:comment_id", getCommentById)
+
+app.delete("/api/comments/:comment_id", deleteCommentById)
+
 app.use((err, req, res, next) => {
 
   if (err.code === "22P02" || err.code === "23502" || err.message === "Bad Request") {
@@ -40,7 +46,7 @@ app.use((req, res, next) => {
 })
 
 app.use((err, req, res, next) => {
-  if (err.message === "No topics found" || "Article not found") {
+  if (err.message === "No topics found" || "Article not found" || "Comment not found") {
     res.status(404).send({ error: "Not found" });
   } else {
     next(err);
