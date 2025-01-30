@@ -533,3 +533,68 @@ describe("GET /api/articles?sort_by=created_at&order=?", () => {
       })
   })
 });
+
+describe("GET /api/articles?topic", () => {
+  test("200: Responds with all articles when filtered by associated topic", () => {
+    return request(app)
+      .get("/api/articles?topic=mitch")
+      .expect(200)
+      .then(({ body }) => {
+        console.log({ body })
+        body.articles.forEach((article) => {
+          expect(article).toMatchObject({
+            author: expect.any(String),
+            title: expect.any(String),
+            article_id: expect.any(Number),
+            topic: expect.any(String),
+            created_at: expect.any(String),
+            votes: expect.any(Number),
+            article_img_url: expect.any(String),
+            comment_count: expect.any(Number)
+          })
+          expect(Object.keys(article).length).toBe(8)
+          expect(article.topic).toBe('mitch')
+        })
+      })
+  });
+    
+  test("200: returns all articles on endpoint if no topic query requested", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body }) => {
+        body.articles.forEach((article) => {
+          expect(article).toMatchObject({
+            author: expect.any(String),
+            title: expect.any(String),
+            article_id: expect.any(Number),
+            topic: expect.any(String),
+            created_at: expect.any(String),
+            votes: expect.any(Number),
+            article_img_url: expect.any(String),
+            comment_count: expect.any(Number)
+          })
+          expect(Object.keys(article).length).toBe(8)
+        })
+      })
+  })
+
+  test("404: returns not found when no associated topic value", () => {
+    return request(app)
+      .get("/api/articles?topic=hello")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.error).toBe("Not found")
+      })
+  }) 
+      
+  // test("400: Responds with an error when requested to sort by invalid column to sort", () => {
+  //   return request(app)
+  //     .get("/api/articles?users=name")
+  //     .expect(400)
+  //     .then((response) => {
+  //       console.log(response, 'rresopnse')
+  //         expect(response.body.error).toBe("Bad Request")
+  //     })
+  // })
+});
