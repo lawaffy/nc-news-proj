@@ -127,7 +127,7 @@ describe("GET /api/articles", () => {
       })
   });
     
-  test("Should be able to sort in desc order by created_by column", () => {
+  test("Should be able to sort in desc order by created_at column", () => {
     return request(app)
       .get("/api/articles")
       .query({ sort_by: 'created_at', order: 'desc' })
@@ -136,7 +136,18 @@ describe("GET /api/articles", () => {
         const body = response.body;
         expect(body.articles).toBeSortedBy('created_at', { descending: true })
         })
-      })  
+      })
+
+  test("Should be able to sort in asc order by created_at column", () => {
+    return request(app)
+      .get("/api/articles")
+      .query({ sort_by: 'created_at', order: 'asc' })
+      .expect(200)
+      .then((response) => {
+        const body = response.body;
+        expect(body.articles).toBeSortedBy('created_at', { ascending: true })
+        })
+      }) 
       
   test("400: Responds with an error when requested to sort by invalid column", () => {
     return request(app)
@@ -459,3 +470,66 @@ describe("GET /api/users", () => {
         })
       })
   });
+
+describe("GET /api/articles?sort_by=created_at&order=?", () => {
+  test("200: Responds with an array of articles, with sort by created_at and order asc features working", () => {
+    return request(app)
+      .get("/api/articles?sort_by=created_at&order=asc")
+      .expect(200)
+      .then(({ body }) => {
+        body.articles.forEach((article) => {
+          expect(article).toMatchObject({
+            author: expect.any(String),
+            title: expect.any(String),
+            article_id: expect.any(Number),
+            topic: expect.any(String),
+            created_at: expect.any(String),
+            votes: expect.any(Number),
+            article_img_url: expect.any(String),
+            comment_count: expect.any(Number)
+          })
+          expect(Object.keys(article).length).toBe(8)
+          expect(article.body).toBe(undefined)
+          expect(body.articles).toBeSortedBy('created_at', { ascending: true })
+        })
+      })
+  });
+    
+  test("sort in desc order by created_at column feature test", () => {
+    return request(app)
+      .get("/api/articles?sort_by=created_at&order=desc")
+      .expect(200)
+      .then((response) => {
+        const body = response.body;
+        expect(body.articles).toBeSortedBy('created_at', { descending: true })
+      })
+  })
+
+  test("sort_by created_at column and defaults to descending", () => {
+    return request(app)
+      .get("/api/articles?sort_by=created_at")
+      .expect(200)
+      .then((response) => {
+        const body = response.body;
+        expect(body.articles).toBeSortedBy('created_at', { descending: true })
+      })
+  }) 
+      
+  test("400: Responds with an error when requested to sort by invalid column", () => {
+    return request(app)
+      .get("/api/articles?sort_by=comments")
+      .expect(400)
+      .then((response) => {
+          expect(response.body.error).toBe("Bad Request")
+      })
+  })
+
+  test("400: Responds with an error when requested to order by invalid parameter", () => {
+    return request(app)
+      .get("/api/articles?sort_by=created_at&order=hello")
+      .expect(400)
+      .then((response) => {
+          expect(response.body.error).toBe("Bad Request")
+      })
+  })
+});
