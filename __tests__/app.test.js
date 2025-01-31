@@ -78,7 +78,7 @@ describe("GET /api/articles/:article_id", () => {
       .get("/api/articles/2")
       .expect(200)
       .then(({ body: { article } }) => {
-        expect(Object.keys(article).length).toBe(8)
+        expect(Object.keys(article).length).toBe(9)
         expect(typeof article.author).toBe("string")
         expect(typeof article.article_id).toBe('number')
       });
