@@ -2,7 +2,7 @@ const db = require('../db/connection')
 
 const fetchUsers = () => {
 
-    let SQLString = (`SELECT username, name, avatar_url FROM users;`) 
+    const SQLString = (`SELECT username, name, avatar_url FROM users;`) 
 
     return db.query(SQLString).then(( { rows }) => {
         if (rows.length === 0) {

@@ -11,6 +11,7 @@ const filterByTopic = (topic) => {
 }
 
 const fetchArticles = (queries) => {
+
     const acceptedQueries = ['topic', 'sort_by', 'order']
     let isValidQuery = true;
     Object.keys(queries).forEach((query) => {
@@ -22,9 +23,9 @@ const fetchArticles = (queries) => {
         return Promise.reject({ message: "Bad Request" })
     }
 
-    const sort_by = queries.sort_by
+    const sort_by = queries.sort_by || 'created_at'
     const order = queries.order || 'desc'
-    const topic = queries.topic
+    const topic = queries.topic 
 
     let SQLString = `SELECT articles.author, articles.title, articles.article_id, articles.topic, articles.created_at, articles.votes, articles.article_img_url,
     COUNT(comments.article_id) :: INTEGER AS comment_count
@@ -48,7 +49,7 @@ const fetchArticles = (queries) => {
         SQLString += ` GROUP BY articles.article_id`
 
         if (sort_by) {
-            const validColumnsToSortBy = ['created_at'];
+            const validColumnsToSortBy = ['created_at', 'author', 'title', 'article_id', 'topic', 'comment_count', 'votes'];
             if (validColumnsToSortBy.includes(sort_by)) {
                 SQLString += ` ORDER BY ${sort_by}`;
             } else {
