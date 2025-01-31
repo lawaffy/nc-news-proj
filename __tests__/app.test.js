@@ -566,3 +566,45 @@ describe("GET /api/articles?topic", () => {
       })
   })
 });
+
+describe("GET /api/articles/:article_id - comment_count feature", () => {
+  test("200: Reponds on article_id dynamic endpoint with comment_count response object", () => {
+    return request(app)
+      .get("/api/articles/9")
+      .expect(200)
+      .then(({ body }) => {
+        const article = body.article
+        expect(article).toMatchObject({
+          author: expect.any(String),
+          title: expect.any(String),
+          article_id: expect.any(Number),
+          topic: expect.any(String),
+          created_at: expect.any(String),
+          votes: expect.any(Number),
+          article_img_url: expect.any(String),
+          comment_count: expect.any(Number),
+          })
+          expect(article.comment_count).toBe(2)
+      })
+  })
+
+  test("if there's no associated comments on an article but the article_id exists, comment count still returns in response", () => {
+    return request(app)
+      .get("/api/articles/11")
+      .expect(200)
+      .then(({ body }) => {
+        const article = body.article
+        expect(article).toMatchObject({
+          author: expect.any(String),
+          title: expect.any(String),
+          article_id: expect.any(Number),
+          topic: expect.any(String),
+          created_at: expect.any(String),
+          votes: expect.any(Number),
+          article_img_url: expect.any(String),
+          comment_count: expect.any(Number),
+        })
+          expect(article.comment_count).toBe(0)
+      })
+  })
+})
