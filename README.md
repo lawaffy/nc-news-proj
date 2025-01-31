@@ -44,10 +44,11 @@
 
 **4. Set Up and Seed the Database**
 
-- scripts:
-    *Set up db:* `npm run setup-dbs` - creates development and test databases,
-    *Seed db:* `npm run seed` - seeds the development database,
-    *Tests:* `npm run test` - runs Jest test suites,
+- Scripts:
+
+    - *Set up db:* `npm run setup-dbs` - creates development and test databases
+    - *Seed db:* `npm run seed` - seeds the development database
+    - *Tests:* `npm run test` - runs Jest test suites
 
 **5. Setting Up Environment Variables**
 
