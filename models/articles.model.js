@@ -69,15 +69,21 @@ const fetchArticles = (queries) => {
 
 const fetchArticleById = (id) => {
     return db
-    .query(`SELECT * FROM articles WHERE article_id=$1`, [id])
+    .query(
+        `SELECT articles.author, articles.title, articles.article_id, articles.topic, articles.created_at, articles.votes, articles.article_img_url,
+            COUNT(comments.comment_id) :: INTEGER AS comment_count
+            FROM articles
+            LEFT JOIN comments ON comments.article_id = articles.article_id
+            WHERE articles.article_id = $1
+            GROUP BY articles.article_id;`, [id])
     .then(({ rows }) => {
         if (rows.length === 0) {
-        return Promise.reject({ message: 'Article not found' });
+            return Promise.reject({ message: 'Article not found' });
         } else {
-        return rows[0]
+            return rows[0];
         }
-    })
-}
+    });
+};
 
 const fetchArticleComments = (queries) => {
     const { sort_by, order, article_id } = queries
