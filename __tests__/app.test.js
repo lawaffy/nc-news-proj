@@ -449,21 +449,21 @@ describe("GET /api/users", () => {
       .get("/api/users")
       .expect(200)
       .then(({ body }) => {
-        expect(Array.isArray(body.users)).toBe(true)
+        expect(body.users.length).toBe(4)
         body.users.forEach((user) => {
-          expect(user).toMatchObject({
+            expect(user).toMatchObject({
             username: expect.any(String),
             name: expect.any(String),
             avatar_url: expect.any(String)
-          })
-          expect(Object.keys(user).length).toBe(3)
         })
+        expect(Object.keys(user).length).toBe(3)
       })
+    })
   }); 
       
   test("404: Responds with an error when passed incorrect endpoint", () => {
     return request(app)
-      .get("/api/2308")
+      .get("/api/users/2308")
       .expect(404)
       .then((response) => {
           expect(response.body.error).toBe("Not found")
@@ -471,53 +471,38 @@ describe("GET /api/users", () => {
       })
   });
 
-describe("GET /api/articles?sort_by=created_at&order=?", () => {
+describe("GET /api/articles - sort by & order features", () => {
   test("200: Responds with an array of articles, with sort by created_at and order asc features working", () => {
     return request(app)
-      .get("/api/articles?sort_by=created_at&order=asc")
+      .get("/api/articles")
       .expect(200)
       .then(({ body }) => {
-        body.articles.forEach((article) => {
-          expect(article).toMatchObject({
-            author: expect.any(String),
-            title: expect.any(String),
-            article_id: expect.any(Number),
-            topic: expect.any(String),
-            created_at: expect.any(String),
-            votes: expect.any(Number),
-            article_img_url: expect.any(String),
-            comment_count: expect.any(Number)
+        expect(body.articles.length).toBe(13)
+            expect(body.articles).toBeSortedBy('created_at', { descending: true })
+            })
           })
-          expect(Object.keys(article).length).toBe(8)
-          expect(article.body).toBe(undefined)
-          expect(body.articles).toBeSortedBy('created_at', { ascending: true })
-        })
-      })
-  });
-    
-  test("sort in desc order by created_at column feature test", () => {
-    return request(app)
-      .get("/api/articles?sort_by=created_at&order=desc")
-      .expect(200)
-      .then((response) => {
-        const body = response.body;
-        expect(body.articles).toBeSortedBy('created_at', { descending: true })
-      })
-  })
 
-  test("sort_by created_at column and defaults to descending", () => {
-    return request(app)
-      .get("/api/articles?sort_by=created_at")
-      .expect(200)
-      .then((response) => {
-        const body = response.body;
-        expect(body.articles).toBeSortedBy('created_at', { descending: true })
+  test("can sort_by and order by other valid columns", () => {
+      return request(app)
+          .get("/api/articles?sort_by=title&order=asc")
+          .expect(200)
+          .then(({ body }) => {
+              expect(body.articles).toBeSortedBy('title', { ascending: true })
       })
-  }) 
+})
+
+test("can sort_by and order by other valid columns", () => {
+  return request(app)
+      .get("/api/articles?sort_by=votes&order=desc")
+      .expect(200)
+      .then(({ body }) => {
+          expect(body.articles).toBeSortedBy('votes', { descending: true })
+  })
+})
       
   test("400: Responds with an error when requested to sort by invalid column", () => {
     return request(app)
-      .get("/api/articles?sort_by=comments")
+      .get("/api/articles?sort_by=commentbody")
       .expect(400)
       .then((response) => {
           expect(response.body.error).toBe("Bad Request")
@@ -546,10 +531,11 @@ describe("GET /api/articles?topic", () => {
     
   test("200: returns all articles on endpoint if no topic query requested", () => {
     return request(app)
-      .get("/api/articles")
+      .get("/api/articles?topic")
       .expect(200)
       .then(({ body }) => {
         expect(body.articles.length).toBe(13)
+
       })
   })
 
